@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	<security:http auto-config="true">
+
+		<security:intercept-url pattern="/emp-list"
+			access="ROLE_EMP_LIST" />
+
+		<security:form-login login-page="/index.jsp"
+			login-processing-url="/security-login" username-parameter="loginName"
+			password-parameter="password" default-target-url="/emp-login"
+			authentication-success-handler-ref="emsAuthenticationSuccessHandler"
+			authentication-failure-handler-ref="emsAuthenticationFailureHandler"
+			always-use-default-target="true" />
+
+		<security:logout logout-url="/security-logout" />
+
+	</security:http>
+
+	<security:authentication-manager>
+		<security:authentication-provider
+			user-service-ref="emsUserDetailsService">
+			<security:password-encoder hash="md5">
+				<security:salt-source user-property="username" />
+			</security:password-encoder>
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+	<!-- <bean> -->
+
+	<!-- </bean> -->
+
+</beans>

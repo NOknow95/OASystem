@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+	<constant name="struts.devMode" value="true" />
+
+	<!-- 修改注意为 simple -->
+	<constant name="struts.ui.theme" value="simple"></constant>
+
+	<constant name="struts.custom.i18n.resources" value="i18n"></constant>
+
+	<package name="default" namespace="/" extends="json-default">
+
+		<!-- <interceptors> -->
+		<!-- <interceptor-stack name="emsStack"> -->
+		<!-- <interceptor-ref name="paramsPrepareParamsStack"> -->
+		<!-- <param name="chain.copyFieldErrors">true</param> -->
+		<!-- <param name="prepare.alwaysInvokePrepare">false</param> -->
+		<!-- </interceptor-ref> -->
+		<!-- </interceptor-stack> -->
+		<!-- </interceptors> -->
+
+		<interceptors>
+			<interceptor name="downloadFileCleaner"
+				class="com.wjw.ems.interceptor.DownloadFileCleanerInterceptor"></interceptor>
+			<interceptor-stack name="emsStack">
+				<interceptor-ref name="downloadFileCleaner"></interceptor-ref>
+				<interceptor-ref name="paramsPrepareParamsStack">
+					<!-- 当使用 chain 结果类型时, 实际上是转发到一个 Action. 此时在值栈中会有两个 Action. 前面的 Action 
+						在值栈较低的位置, 转发的 Action 会更加的靠近栈顶. 若前面的 Action 有 fieldError, 而后面的 Action 没有 fieldError, 
+						则页面上使用 s:fieldError 标签 无法显示出字段错误. 社会自 copyFieldErrors 为 true, Struts2 可以把下面 
+						Action 的 fieldErrors 复制到 靠近栈顶的 Action 的 fieldErrors 属性中. -->
+					<param name="chain.copyFieldErrors">true</param>
+					<param name="prepare.alwaysInvokePrepare">false</param>
+				</interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+		<default-interceptor-ref name="emsStack"></default-interceptor-ref>
+
+		<action name="role-*" class="roleAction" method="{1}">
+			<result name="role-input">/WEB-INF/pages/role/input.jsp</result>
+		</action>
+
+		<action name="emp-upload" class="employeeAction" method="upload">
+			<interceptor-ref name="emsStack">
+				<param name="fileUpload.allowedExtensions">xls</param>
+				<param name="fileUpload.allowedTypes">application/vnd.ms-excel</param>
+			</interceptor-ref>
+			<result name="input">/WEB-INF/pages/emp/upload.jsp</result>
+		</action>
+
+		<action name="emp-toUpload">
+			<result>/WEB-INF/pages/emp/upload.jsp</result>
+		</action>
+
+		<action name="emp-save" class="employeeAction" method="save">
+			<result name="input" type="chain">
+				<param name="actionName">emp-input</param>
+			</result>
+		</action>
+
+		<action name="emp-*" class="employeeAction" method="{1}">
+			<exception-mapping result="input"
+				exception="com.wjw.ems.exception.AccountUnabledException" />
+			<exception-mapping result="input"
+				exception="com.wjw.ems.exception.LoginNameNotFoundException" />
+			<exception-mapping result="input"
+				exception="com.wjw.ems.exception.PasswordNotMatchException" />
+				
+			<result name="navigation" type="json">
+				<param name="root">navigations</param>
+			</result>
+
+			<result name="list3">/WEB-INF/pages/emp/list3.jsp</result>
+			<result name="criteria-input">/WEB-INF/pages/emp/criteria-input.jsp</result>
+
+			<result name="down-success" type="stream"></result>
+			<result name="emp-input">/WEB-INF/pages/emp/input.jsp</result>
+			<result name="json-page" type="json">
+				<param name="root">page</param>
+				<param name="excludeProperties">content.*\.department,content.*\.roles,content.*\.editor</param>
+			</result>
+			<result name="list">/WEB-INF/pages/emp/list2.jsp</result>
+			<result name="input">/index.jsp</result>
+			<result name="success">/WEB-INF/pages/success.jsp</result>
+		</action>
+	</package>
+</struts>
